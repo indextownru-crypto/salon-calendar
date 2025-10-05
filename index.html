@@ -1,6 +1,6 @@
 <script>
   // === ВСТАВЬТЕ СЮДА СВОЙ URL ИЗ APPS SCRIPT ===
-  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s17MRicFpvKsBvIpwDLd6d7D6pVLzFQIRpJZ2j5QCpAUYV7HHjAGG1RSSs/exec";
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/17MRicFpvKsBvIpwDLd6d7D6pVLzFQIRpJZ2j5QCpAUYV7HHjAGG1RSSs/exec";
 
   // State
   let currentView = 'day';
@@ -83,8 +83,7 @@
     } catch (e) {
       console.error("Ошибка загрузки данных:", e);
       showNotification("Ошибка загрузки данных");
-      // Используем локальные данные как fallback
-      initSampleData();
+      initSampleData(); // fallback
     }
     
     renderDayView();
@@ -563,7 +562,7 @@
     e.target.value = v;
   });
 
-  // Fallback data (for offline or error cases)
+  // Fallback data
   function initSampleData() {
     clients = [
       { id: 1, name: 'Анна Петрова', phone: '+7 (999) 123-45-67', avatar: null },
