@@ -1,1463 +1,585 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Salon Calendar</title>
-    <link rel="stylesheet" href="https://script.google.com/u/0/home/projects/17MRicFpvKsBvIpwDLd6d7D6pVLzFQIRpJZ2j5QCpAUYV7HHjAGG1RSSs/edit">
-    <style>
-        /* ... (весь CSS без изменений) ... */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-        body {
-            background: #f8fafc;
-            min-height: 100vh;
-            color: #1e293b;
-            padding: 20px;
-        }
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-        }
-        /* Phone Frame */
-        .phone-frame {
-            background: #f1f5f9;
-            border-radius: 40px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            position: relative;
-            overflow: hidden;
-        }
-        /* Header Card */
-        .header-card {
-            background: #ffffff;
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        .avatar {
-            width: 60px;
-            height: 60px;
-            background: #e2e8f0;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #64748b;
-            font-size: 24px;
-            overflow: hidden;
-        }
-        .avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .header-info {
-            flex: 1;
-        }
-        .header-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 5px;
-        }
-        .header-subtitle {
-            font-size: 14px;
-            color: #64748b;
-        }
-        /* View Toggle */
-        .view-toggle {
-            display: flex;
-            background: white;
-            border-radius: 12px;
-            padding: 6px;
-            margin-bottom: 20px;
-            border: 1px solid #e2e8f0;
-        }
-        .view-btn {
-            flex: 1;
-            padding: 8px;
-            text-align: center;
-            font-weight: 500;
-            font-size: 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            color: #64748b;
-        }
-        .view-btn.active {
-            background: #4f46e5;
-            color: white;
-        }
-        /* Day View */
-        .day-view {
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-        .day-header {
-            font-size: 18px;
-            font-weight: 600;
-            color: #1e293b;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        .appointment {
-            display: flex;
-            align-items: center;
-            padding: 12px 15px;
-            background: #f8fafc;
-            border-radius: 12px;
-            margin-bottom: 10px;
-            font-size: 14px;
-            color: #1e293b;
-        }
-        .appointment.past {
-            text-decoration: line-through;
-            color: #94a3b8;
-        }
-        .appointment:last-child {
-            margin-bottom: 0;
-        }
-        .appointment-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: #e2e8f0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 12px;
-            overflow: hidden;
-        }
-        .appointment-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .appointment-info {
-            flex: 1;
-        }
-        .appointment-time {
-            font-weight: 600;
-            color: #4f46e5;
-            margin-bottom: 2px;
-        }
-        .appointment-service {
-            font-size: 13px;
-            color: #64748b;
-        }
-        .appointment-cancel {
-            background: #fee2e2;
-            color: #dc2626;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .appointment-cancel:hover {
-            background: #fecaca;
-        }
-        /* Week Calendar View */
-        .week-calendar-view {
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            display: none;
-        }
-        .week-calendar-header {
-            font-size: 18px;
-            font-weight: 600;
-            color: #1e293b;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        .week-days-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
-        }
-        .week-day-cell {
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 12px 8px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .week-day-cell:hover {
-            background: #eef2ff;
-            transform: translateY(-2px);
-        }
-        .week-day-name {
-            font-size: 12px;
-            font-weight: 600;
-            color: #64748b;
-            margin-bottom: 6px;
-        }
-        .week-day-date {
-            font-size: 16px;
-            font-weight: 700;
-            color: #1e293b;
-        }
-        .week-day-cell.today {
-            background: #e0f2fe;
-            border: 2px solid #0ea5e9;
-        }
-        .week-day-cell.has-appointments {
-            position: relative;
-        }
-        .week-day-cell.has-appointments::after {
-            content: '';
-            position: absolute;
-            top: 6px;
-            right: 6px;
-            width: 6px;
-            height: 6px;
-            background: #4f46e5;
-            border-radius: 50%;
-        }
-        .week-day-cell.saturday,
-        .week-day-cell.sunday {
-            border: 2px solid #dc2626;
-        }
-        /* Month Calendar View */
-        .month-calendar-view {
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            display: none;
-        }
-        .month-calendar-header {
-            font-size: 18px;
-            font-weight: 600;
-            color: #1e293b;
-            margin-bottom: 15px;
-            text-align: center;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .month-nav-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-            background: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-        .month-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 4px;
-        }
-        .month-day-header {
-            text-align: center;
-            font-weight: 600;
-            font-size: 12px;
-            padding: 8px 0;
-        }
-        .month-day-header.saturday,
-        .month-day-header.sunday {
-            color: #dc2626;
-        }
-        .month-day {
-            height: 60px;
-            background: white;
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 4px;
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: 1px solid #e2e8f0;
-        }
-        .month-day:hover {
-            background: #f1f5f9;
-        }
-        .month-day.today {
-            background: #eef2ff;
-            color: #4f46e5;
-            font-weight: 600;
-            border-color: #c7d2fe;
-        }
-        .month-day.saturday,
-        .month-day.sunday {
-            border: 2px solid #dc2626;
-        }
-        .month-day-number {
-            font-weight: 600;
-            text-align: right;
-        }
-        .month-day-appointments {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-        .month-appointment {
-            background: #dbeafe;
-            color: #1e40af;
-            padding: 2px 4px;
-            border-radius: 4px;
-            font-size: 10px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .month-appointment.past {
-            background: #f1f5f9;
-            color: #94a3b8;
-            text-decoration: line-through;
-        }
-        /* Clients View */
-        .clients-view {
-            background: #ffffff;
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            display: none;
-        }
-        .search-bar {
-            margin-bottom: 15px;
-        }
-        .search-input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 16px;
-            outline: none;
-        }
-        .search-input:focus {
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-        }
-        .client-card {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            background: #f8fafc;
-            border-radius: 12px;
-            margin-bottom: 12px;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-        }
-        .client-card:hover {
-            background: #f1f5f9;
-        }
-        .client-avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: #e2e8f0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 15px;
-            overflow: hidden;
-        }
-        .client-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .client-info {
-            flex: 1;
-        }
-        .client-name {
-            font-weight: 600;
-            color: #1e293b;
-            font-size: 15px;
-            margin-bottom: 4px;
-        }
-        .client-phone {
-            color: #64748b;
-            font-size: 13px;
-        }
-        /* Bottom Navigation */
-        .bottom-nav {
-            display: flex;
-            justify-content: space-around;
-            padding: 15px 20px;
-            background: #ffffff;
-            border-radius: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            color: #64748b;
-        }
-        .nav-item.active {
-            color: #4f46e5;
-        }
-        .nav-icon {
-            width: 40px;
-            height: 40px;
-            background: #f8fafc;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-        }
-        .nav-item.active .nav-icon {
-            background: #eef2ff;
-            color: #4f46e5;
-        }
-        .nav-label {
-            font-size: 12px;
-            font-weight: 500;
-        }
-        /* Add Booking Button */
-        .add-booking-btn {
-            position: fixed;
-            bottom: 80px;
-            right: 24px;
-            width: 56px;
-            height: 56px;
-            background: #4f46e5;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            font-size: 20px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-            z-index: 999;
-        }
-        .add-booking-btn:hover {
-            background: #4338ca;
-            transform: scale(1.05);
-        }
-        /* Booking Modal */
-        .booking-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.4);
-            display: flex;
-            align-items: flex-end;
-            z-index: 1000;
-        }
-        .booking-content {
-            background: white;
-            border-radius: 20px 20px 0 0;
-            padding: 24px;
-            max-height: 80vh;
-            overflow-y: auto;
-            width: 100%;
-        }
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-        }
-        .modal-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #1e293b;
-        }
-        .close-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-            background: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: #475569;
-            font-size: 14px;
-        }
-        .form-input {
-            width: 100%;
-            padding: 14px 16px;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 16px;
-            transition: all 0.2s ease;
-        }
-        .form-input:focus {
-            outline: none;
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-        }
-        .avatar-upload {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        .avatar-preview {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: #e2e8f0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            cursor: pointer;
-        }
-        .avatar-preview img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .avatar-actions {
-            flex: 1;
-        }
-        .avatar-btn {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 8px;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            background: white;
-            cursor: pointer;
-            text-align: center;
-            font-size: 14px;
-            color: #475569;
-            transition: all 0.2s ease;
-        }
-        .avatar-btn:hover {
-            border-color: #4f46e5;
-            color: #4f46e5;
-            background: #f1f5f9;
-        }
-        .service-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 8px;
-        }
-        .service-tag {
-            padding: 8px 16px;
-            border: 1px solid #e2e8f0;
-            border-radius: 20px;
-            background: white;
-            font-size: 13px;
-            font-weight: 500;
-            color: #475569;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .service-tag:hover {
-            border-color: #4f46e5;
-            color: #4f46e5;
-            background: #f1f5f9;
-        }
-        .service-tag.selected {
-            background: #4f46e5;
-            color: white;
-            border-color: #4f46e5;
-        }
-        .time-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 8px;
-        }
-        .time-tag {
-            padding: 8px 16px;
-            border: 1px solid #e2e8f0;
-            border-radius: 20px;
-            background: white;
-            font-size: 13px;
-            font-weight: 500;
-            color: #475569;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .time-tag:hover {
-            border-color: #4f46e5;
-            color: #4f46e5;
-            background: #f1f5f9;
-        }
-        .time-tag.selected {
-            background: #4f46e5;
-            color: white;
-            border-color: #4f46e5;
-        }
-        .time-tag.booked {
-            background: #fee2e2;
-            color: #dc2626;
-            border-color: #fecaca;
-            cursor: not-allowed;
-        }
-        .submit-btn {
-            width: 100%;
-            padding: 16px;
-            background: #4f46e5;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s ease;
-        }
-        .submit-btn:hover {
-            background: #4338ca;
-        }
-        .select-client-btn {
-            width: 100%;
-            padding: 16px;
-            background: #e2e8f0;
-            color: #475569;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s ease;
-            margin-top: 10px;
-        }
-        .select-client-btn:hover {
-            background: #cbd5e1;
-        }
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: white;
-            color: #16a34a;
-            padding: 16px 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            transform: translateX(200%);
-            transition: transform 0.3s ease;
-            z-index: 1000;
-            border-left: 3px solid #16a34a;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 14px;
-            font-weight: 500;
-        }
-        .notification.show {
-            transform: translateX(0);
-        }
-        .hidden {
-            display: none !important;
-        }
-        .no-appointments {
-            text-align: center;
-            color: #94a3b8;
-            padding: 20px;
-            font-style: italic;
-        }
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #64748b;
-        }
-    </style>
-</head>
-<body>
-    <!-- ... (весь HTML без изменений до скрипта) ... -->
-    <div class="container">
-        <div class="phone-frame">
-            <!-- Header Card -->
-            <div class="header-card">
-                <div class="avatar">
-                    <i class="fas fa-cut"></i>
-                </div>
-                <div class="header-info">
-                    <h1 class="header-title">Запись клиента</h1>
-                    <p class="header-subtitle" id="currentDate">Понедельник, 15 января 2024</p>
-                </div>
-            </div>
-            <!-- Calendar Views -->
-            <div class="view-toggle">
-                <div class="view-btn active" data-view="day">Сегодня</div>
-                <div class="view-btn" data-view="week">Неделя</div>
-                <div class="view-btn" data-view="month">Месяц</div>
-            </div>
-            <!-- Day View -->
-            <div class="day-view" id="dayView">
-                <div class="day-header" id="dayHeader">Понедельник, 15 января 2024</div>
-                <div id="dayAppointments">
-                    <div class="loading">Загрузка...</div>
-                </div>
-            </div>
-            <!-- Week Calendar View -->
-            <div class="week-calendar-view" id="weekCalendarView">
-                <div class="week-calendar-header" id="weekCalendarHeader">Неделя: 15 - 21 января 2024</div>
-                <div class="week-days-grid" id="weekDaysGrid">
-                    <!-- Will be populated by JS -->
-                </div>
-            </div>
-            <!-- Month Calendar View -->
-            <div class="month-calendar-view" id="monthCalendarView">
-                <div class="month-calendar-header">
-                    <button class="month-nav-btn" id="prevMonthBtn">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <div id="monthCalendarTitle">Январь 2024</div>
-                    <button class="month-nav-btn" id="nextMonthBtn">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                </div>
-                <div class="month-grid" id="monthGrid">
-                    <!-- Will be populated by JS -->
-                </div>
-            </div>
-            <!-- Clients View (separate page) -->
-            <div class="clients-view" id="clientsView">
-                <div class="search-bar">
-                    <input type="text" class="search-input" id="searchInput" placeholder="Поиск по имени или телефону...">
-                </div>
-                <div id="clientsList">
-                    <div class="loading">Загрузка клиентов...</div>
-                </div>
-            </div>
-            <!-- Bottom Navigation -->
-            <div class="bottom-nav">
-                <div class="nav-item active" data-tab="home">
-                    <div class="nav-icon">
-                        <i class="fas fa-home"></i>
-                    </div>
-                    <span class="nav-label">Главная</span>
-                </div>
-                <div class="nav-item" data-tab="clients">
-                    <div class="nav-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <span class="nav-label">Клиенты</span>
-                </div>
-                <div class="nav-item" data-tab="chat">
-                    <div class="nav-icon">
-                        <i class="fas fa-comments"></i>
-                    </div>
-                    <span class="nav-label">Чат</span>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Add Booking Button -->
-    <button class="add-booking-btn" id="addBookingBtn">
-        <i class="fas fa-plus"></i>
-    </button>
-    <!-- Booking Modal -->
-    <div class="booking-modal" id="bookingModal" style="display: none;">
-        <div class="booking-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Новая запись</h2>
-                <button class="close-btn" id="closeModal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <form id="bookingForm">
-                <div class="avatar-upload">
-                    <div class="avatar-preview" id="avatarPreview">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div class="avatar-actions">
-                        <input type="file" id="avatarInput" accept="image/*" style="display: none;">
-                        <button type="button" class="avatar-btn" id="cameraBtn">
-                            <i class="fas fa-camera"></i> Сделать фото
-                        </button>
-                        <button type="button" class="avatar-btn" id="galleryBtn">
-                            <i class="fas fa-images"></i> Выбрать из галереи
-                        </button>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Номер телефона *</label>
-                    <input type="tel" class="form-input" id="clientPhone" placeholder="+7 (999) 123-45-67" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Имя клиента *</label>
-                    <input type="text" class="form-input" id="clientName" placeholder="Иван Иванов" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Услуга *</label>
-                    <div class="service-tags" id="serviceTags">
-                        <div class="service-tag" data-service="Стрижка">Стрижка</div>
-                        <div class="service-tag" data-service="Покраска">Покраска</div>
-                        <div class="service-tag" data-service="Прическа">Прическа</div>
-                        <div class="service-tag" data-service="Мелирование">Мелирование</div>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Дата *</label>
-                    <input type="date" class="form-input" id="bookingDate" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Время *</label>
-                    <div class="time-tags" id="timeTags">
-                        <!-- Time tags will be populated by JS -->
-                    </div>
-                </div>
-                <button type="submit" class="submit-btn">
-                    Записать клиента
-                </button>
-                <button type="button" class="select-client-btn" id="selectClientBtn">
-                    Выбрать из списка клиентов
-                </button>
-            </form>
-        </div>
-    </div>
-    <!-- Notification -->
-    <div class="notification" id="notification">
-        <i class="fas fa-check-circle"></i>
-        <span>Клиент успешно записан!</span>
-    </div>
-    <script>
-        // === НАСТРОЙКА ===
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec"; // ← ЗАМЕНИТЕ НА СВОЙ URL!
+<script>
+  // === ВСТАВЬТЕ СЮДА СВОЙ URL ИЗ APPS SCRIPT ===
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec";
 
-        // State management
-        let currentView = 'day';
-        let currentDate = new Date();
-        let currentMonth = new Date();
-        let bookings = [];
-        let clients = [];
-        let selectedTime = null;
-        let selectedService = null;
-        let selectedDateForBooking = null;
-        let editingClient = null;
-        let currentAvatar = null;
+  // State
+  let currentView = 'day';
+  let currentDate = new Date();
+  let currentMonth = new Date();
+  let bookings = [];
+  let clients = [];
+  let selectedTime = null;
+  let selectedService = null;
+  let selectedDateForBooking = null;
+  let currentAvatar = null;
 
-        // DOM Elements (без изменений)
-        const dayView = document.getElementById('dayView');
-        const weekCalendarView = document.getElementById('weekCalendarView');
-        const monthCalendarView = document.getElementById('monthCalendarView');
-        const dayHeader = document.getElementById('dayHeader');
-        const weekCalendarHeader = document.getElementById('weekCalendarHeader');
-        const monthCalendarTitle = document.getElementById('monthCalendarTitle');
-        const dayAppointments = document.getElementById('dayAppointments');
-        const weekDaysGrid = document.getElementById('weekDaysGrid');
-        const monthGrid = document.getElementById('monthGrid');
-        const clientsView = document.getElementById('clientsView');
-        const searchInput = document.getElementById('searchInput');
-        const clientsList = document.getElementById('clientsList');
-        const addBookingBtn = document.getElementById('addBookingBtn');
-        const bookingModal = document.getElementById('bookingModal');
-        const closeModal = document.getElementById('closeModal');
-        const bookingForm = document.getElementById('bookingForm');
-        const clientPhone = document.getElementById('clientPhone');
-        const clientName = document.getElementById('clientName');
-        const bookingDate = document.getElementById('bookingDate');
-        const serviceTagsContainer = document.getElementById('serviceTags');
-        const timeTags = document.getElementById('timeTags');
-        const notification = document.getElementById('notification');
-        const currentDateElement = document.getElementById('currentDate');
-        const navItems = document.querySelectorAll('.nav-item');
-        const prevMonthBtn = document.getElementById('prevMonthBtn');
-        const nextMonthBtn = document.getElementById('nextMonthBtn');
-        const avatarPreview = document.getElementById('avatarPreview');
-        const avatarInput = document.getElementById('avatarInput');
-        const cameraBtn = document.getElementById('cameraBtn');
-        const galleryBtn = document.getElementById('galleryBtn');
-        const selectClientBtn = document.getElementById('selectClientBtn');
+  // DOM Elements
+  const dayView = document.getElementById('dayView');
+  const weekCalendarView = document.getElementById('weekCalendarView');
+  const monthCalendarView = document.getElementById('monthCalendarView');
+  const dayHeader = document.getElementById('dayHeader');
+  const weekCalendarHeader = document.getElementById('weekCalendarHeader');
+  const monthCalendarTitle = document.getElementById('monthCalendarTitle');
+  const dayAppointments = document.getElementById('dayAppointments');
+  const weekDaysGrid = document.getElementById('weekDaysGrid');
+  const monthGrid = document.getElementById('monthGrid');
+  const clientsView = document.getElementById('clientsView');
+  const searchInput = document.getElementById('searchInput');
+  const clientsList = document.getElementById('clientsList');
+  const addBookingBtn = document.getElementById('addBookingBtn');
+  const bookingModal = document.getElementById('bookingModal');
+  const closeModal = document.getElementById('closeModal');
+  const bookingForm = document.getElementById('bookingForm');
+  const clientPhone = document.getElementById('clientPhone');
+  const clientName = document.getElementById('clientName');
+  const bookingDate = document.getElementById('bookingDate');
+  const timeTags = document.getElementById('timeTags');
+  const notification = document.getElementById('notification');
+  const currentDateElement = document.getElementById('currentDate');
+  const navItems = document.querySelectorAll('.nav-item');
+  const prevMonthBtn = document.getElementById('prevMonthBtn');
+  const nextMonthBtn = document.getElementById('nextMonthBtn');
+  const avatarPreview = document.getElementById('avatarPreview');
+  const avatarInput = document.getElementById('avatarInput');
+  const cameraBtn = document.getElementById('cameraBtn');
+  const galleryBtn = document.getElementById('galleryBtn');
+  const selectClientBtn = document.getElementById('selectClientBtn');
 
-        // Cache for performance
-        const timeSlotsCache = {};
+  const timeSlotsCache = {};
 
-        // === НОВЫЕ ФУНКЦИИ ДЛЯ РАБОТЫ С GOOGLE ===
-        async function loadFromGoogle(sheet) {
-            try {
-                const response = await fetch(`${GOOGLE_SCRIPT_URL}?sheet=${sheet}&action=list`);
-                const data = await response.json();
-                return Array.isArray(data) ? data : [];
-            } catch (e) {
-                console.error("Ошибка загрузки из Google:", e);
-                showNotification("Ошибка загрузки данных");
-                return [];
-            }
-        }
+  // === GOOGLE INTEGRATION ===
+  async function loadFromGoogle(sheet) {
+    const res = await fetch(`${GOOGLE_SCRIPT_URL}?sheet=${sheet}&action=list`);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    return data;
+  }
 
-        async function saveToGoogle(sheet, data) {
-            try {
-                const response = await fetch(`${GOOGLE_SCRIPT_URL}?sheet=${sheet}&action=add`, {
-                    method: 'POST',
-                    body: JSON.stringify(data),
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                const result = await response.json();
-                if (!result.success) throw new Error("Save failed");
-            } catch (e) {
-                console.error("Ошибка сохранения в Google:", e);
-                showNotification("Ошибка сохранения");
-                throw e;
-            }
-        }
+  async function saveToGoogle(sheet, data) {
+    const res = await fetch(`${GOOGLE_SCRIPT_URL}?sheet=${sheet}&action=add`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const result = await res.json();
+    if (result.error) throw new Error(result.error);
+  }
 
-        async function deleteFromGoogle(sheet, id) {
-            try {
-                const response = await fetch(`${GOOGLE_SCRIPT_URL}?sheet=${sheet}&action=delete&id=${id}`);
-                const result = await response.json();
-                if (!result.success) throw new Error("Delete failed");
-            } catch (e) {
-                console.error("Ошибка удаления из Google:", e);
-                showNotification("Ошибка удаления");
-                throw e;
-            }
-        }
+  async function deleteFromGoogle(sheet, id) {
+    const res = await fetch(`${GOOGLE_SCRIPT_URL}?sheet=${sheet}&action=delete&id=${id}`);
+    const result = await res.json();
+    if (result.error) throw new Error(result.error);
+  }
 
-        // === ОСТАЛЬНОЙ КОД БЕЗ ИЗМЕНЕНИЙ, КРОМЕ ===
-        async function init() {
-            const today = new Date();
-            currentDateElement.textContent = formatDisplayDate(today);
-            updateDateInputs();
-            await loadData(); // ← Загружаем данные из Google
-            renderDayView();
-            setupEventListeners();
-        }
+  // === INIT ===
+  async function init() {
+    const today = new Date();
+    currentDateElement.textContent = formatDisplayDate(today);
+    updateDateInputs();
+    
+    try {
+      clients = await loadFromGoogle('clients');
+      bookings = await loadFromGoogle('bookings');
+    } catch (e) {
+      console.error("Ошибка загрузки данных:", e);
+      showNotification("Ошибка загрузки данных");
+      // Используем локальные данные как fallback
+      initSampleData();
+    }
+    
+    renderDayView();
+    setupEventListeners();
+  }
 
-        async function loadData() {
-            clients = await loadFromGoogle('clients');
-            bookings = await loadFromGoogle('bookings');
-        }
+  // === HELPER FUNCTIONS (БЕЗ ИЗМЕНЕНИЙ) ===
+  function formatDate(date) {
+    const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
+    const localTime = new Date(utc + (3600000 * 5));
+    return localTime.toISOString().split('T')[0];
+  }
 
-        async function handleBookingSubmit(e) {
-            e.preventDefault();
-            if (!selectedTime || !selectedService) {
-                alert('Пожалуйста, выберите время и услугу');
-                return;
-            }
+  function formatDisplayDate(date) {
+    const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
+    const localTime = new Date(utc + (3600000 * 5));
+    return localTime.toLocaleDateString('ru-RU', { 
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+    });
+  }
 
-            let client = clients.find(c => c.phone === clientPhone.value);
-            if (!client) {
-                const newClient = {
-                    id: Date.now(),
-                    name: clientName.value,
-                    phone: clientPhone.value,
-                    avatar: currentAvatar || ''
-                };
-                await saveToGoogle('clients', newClient);
-                clients.push(newClient);
-                client = newClient;
-            } else {
-                // Обновление клиента не реализовано (можно добавить при желании)
-            }
+  function formatMonthYear(date) {
+    const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
+    const localTime = new Date(utc + (3600000 * 5));
+    return localTime.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+  }
 
-            const newBooking = {
-                id: Date.now(),
-                clientId: client.id,
-                date: bookingDate.value,
-                time: selectedTime,
-                service: selectedService
-            };
-            await saveToGoogle('bookings', newBooking);
-            bookings.push(newBooking);
+  function formatWeekRange(weekStart, weekEnd) {
+    const utcStart = weekStart.getTime() + (weekStart.getTimezoneOffset() * 60000);
+    const localStart = new Date(utcStart + (3600000 * 5));
+    const utcEnd = weekEnd.getTime() + (weekEnd.getTimezoneOffset() * 60000);
+    const localEnd = new Date(utcEnd + (3600000 * 5));
+    return `Неделя: ${localStart.getDate()} - ${localEnd.getDate()} ${localStart.toLocaleDateString('ru-RU', { month: 'long' })} ${localStart.getFullYear()}`;
+  }
 
-            showNotification('Клиент успешно записан!');
-            closeBookingModal();
-            renderCurrentView();
-        }
+  function getTimeSlots(dateStr) {
+    if (timeSlotsCache[dateStr]) return timeSlotsCache[dateStr];
+    const slots = [];
+    for (let hour = 8; hour <= 19; hour++) {
+      slots.push(`${hour.toString().padStart(2, '0')}:00`);
+      slots.push(`${hour.toString().padStart(2, '0')}:30`);
+    }
+    slots.push('20:00');
+    timeSlotsCache[dateStr] = slots;
+    return slots;
+  }
 
-        async function cancelBooking(bookingId) {
-            if (confirm('Вы уверены, что хотите отменить эту запись?')) {
-                await deleteFromGoogle('bookings', bookingId);
-                bookings = bookings.filter(booking => booking.id !== bookingId);
-                showNotification('Запись успешно отменена!');
-                renderCurrentView();
-            }
-        }
+  function isTimeBooked(dateStr, time) {
+    return bookings.some(b => b.date === dateStr && b.time === time);
+  }
 
-        // === ВСЕ ОСТАЛЬНЫЕ ФУНКЦИИ (renderDayView, formatDate и т.д.) ОСТАЮТСЯ БЕЗ ИЗМЕНЕНИЙ ===
-        // (скопированы из исходного файла)
+  function getClientById(clientId) {
+    return clients.find(c => c.id == clientId);
+  }
 
-        function formatDate(date) {
-            const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
-            const localTime = new Date(utc + (3600000 * 5)); // +5 hours
-            return localTime.toISOString().split('T')[0];
-        }
-        function formatDisplayDate(date) {
-            const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
-            const localTime = new Date(utc + (3600000 * 5)); // +5 hours
-            return localTime.toLocaleDateString('ru-RU', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-            });
-        }
-        function formatMonthYear(date) {
-            const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
-            const localTime = new Date(utc + (3600000 * 5)); // +5 hours
-            return localTime.toLocaleDateString('ru-RU', { 
-                month: 'long', 
-                year: 'numeric' 
-            });
-        }
-        function formatWeekRange(weekStart, weekEnd) {
-            const utcStart = weekStart.getTime() + (weekStart.getTimezoneOffset() * 60000);
-            const localStart = new Date(utcStart + (3600000 * 5)); // +5 hours
-            const utcEnd = weekEnd.getTime() + (weekEnd.getTimezoneOffset() * 60000);
-            const localEnd = new Date(utcEnd + (3600000 * 5)); // +5 hours
-            return `Неделя: ${localStart.getDate()} - ${localEnd.getDate()} ${localStart.toLocaleDateString('ru-RU', { month: 'long' })} ${localStart.getFullYear()}`;
-        }
-        function getTimeSlots(dateStr) {
-            if (timeSlotsCache[dateStr]) {
-                return timeSlotsCache[dateStr];
-            }
-            const slots = [];
-            for (let hour = 8; hour <= 19; hour++) {
-                slots.push(`${hour.toString().padStart(2, '0')}:00`);
-                slots.push(`${hour.toString().padStart(2, '0')}:30`);
-            }
-            slots.push('20:00');
-            timeSlotsCache[dateStr] = slots;
-            return slots;
-        }
-        function isTimeBooked(dateStr, time) {
-            return bookings.some(booking => 
-                booking.date === dateStr && booking.time === time
-            );
-        }
-        function getClientById(clientId) {
-            return clients.find(client => client.id === clientId);
-        }
-        function isWeekend(date) {
-            const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
-            const localTime = new Date(utc + (3600000 * 5)); // +5 hours
-            const day = localTime.getDay();
-            return day === 0 || day === 6; // Sunday = 0, Saturday = 6
-        }
-        function isPastAppointment(dateStr, timeStr) {
-            const now = new Date();
-            const appointmentDate = new Date(dateStr);
-            const [hours, minutes] = timeStr.split(':').map(Number);
-            appointmentDate.setHours(hours, minutes, 0, 0);
-            const utc = appointmentDate.getTime() + (appointmentDate.getTimezoneOffset() * 60000);
-            const localTime = new Date(utc + (3600000 * 5)); // +5 hours
-            return localTime < now;
-        }
-        function getWeekStart(date) {
-            const start = new Date(date);
-            const utc = start.getTime() + (start.getTimezoneOffset() * 60000);
-            const localTime = new Date(utc + (3600000 * 5)); // +5 hours
-            const day = localTime.getDay();
-            const diff = localTime.getDate() - day + (day === 0 ? -6 : 1);
-            start.setDate(diff);
-            return start;
-        }
-        function renderTimeTags(dateStr) {
-            timeTags.innerHTML = '';
-            const timeSlots = getTimeSlots(dateStr);
-            timeSlots.forEach(time => {
-                const isBooked = isTimeBooked(dateStr, time);
-                const tag = document.createElement('div');
-                tag.className = `time-tag ${isBooked ? 'booked' : ''}`;
-                tag.textContent = time;
-                if (!isBooked) {
-                    tag.addEventListener('click', () => {
-                        document.querySelectorAll('.time-tag').forEach(t => t.classList.remove('selected'));
-                        tag.classList.add('selected');
-                        selectedTime = time;
-                    });
-                }
-                timeTags.appendChild(tag);
-            });
-        }
-        function renderServiceTags() {
-            document.querySelectorAll('.service-tag').forEach(tag => {
-                tag.classList.remove('selected');
-            });
-            selectedService = null;
-            document.querySelectorAll('.service-tag').forEach(tag => {
-                tag.addEventListener('click', () => {
-                    document.querySelectorAll('.service-tag').forEach(t => t.classList.remove('selected'));
-                    tag.classList.add('selected');
-                    selectedService = tag.dataset.service;
-                });
-            });
-        }
-        function renderDayView() {
-            dayHeader.textContent = formatDisplayDate(currentDate);
-            const dateStr = formatDate(currentDate);
-            const dayBookings = bookings.filter(booking => booking.date === dateStr);
-            if (dayBookings.length === 0) {
-                dayAppointments.innerHTML = '<div class="no-appointments">Нет записей на сегодня</div>';
-                return;
-            }
-            dayBookings.sort((a, b) => a.time.localeCompare(b.time));
-            dayAppointments.innerHTML = dayBookings.map(booking => {
-                const client = getClientById(booking.clientId);
-                const isPast = isPastAppointment(booking.date, booking.time);
-                const pastClass = isPast ? 'past' : '';
-                const showCancel = !isPast;
-                return `
-                    <div class="appointment ${pastClass}">
-                        <div class="appointment-avatar">
-                            ${client && client.avatar ? `<img src="${client.avatar}" alt="${client.name}">` : '<i class="fas fa-user"></i>'}
-                        </div>
-                        <div class="appointment-info">
-                            <div class="appointment-time">${booking.time}</div>
-                            <div class="appointment-service">${booking.service} (${client ? client.name : 'Неизвестный'})</div>
-                        </div>
-                        ${showCancel ? `<button class="appointment-cancel" onclick="cancelBooking(${booking.id})">Отменить</button>` : ''}
-                    </div>
-                `;
-            }).join('');
-        }
-        function renderWeekCalendarView() {
-            const weekStart = getWeekStart(currentDate);
-            const weekEnd = new Date(weekStart);
-            weekEnd.setDate(weekStart.getDate() + 6);
-            weekCalendarHeader.textContent = formatWeekRange(weekStart, weekEnd);
-            let html = '';
-            for (let i = 0; i < 7; i++) {
-                const day = new Date(weekStart);
-                day.setDate(weekStart.getDate() + i);
-                const dateStr = formatDate(day);
-                const dayBookings = bookings.filter(booking => booking.date === dateStr);
-                const isToday = day.toDateString() === new Date().toDateString();
-                const dayName = day.toLocaleDateString('ru-RU', { weekday: 'short' });
-                const dayDate = day.getDate();
-                const dayClasses = ['week-day-cell'];
-                if (isToday) dayClasses.push('today');
-                if (dayBookings.length > 0) dayClasses.push('has-appointments');
-                if (isWeekend(day)) {
-                    dayClasses.push('saturday', 'sunday');
-                }
-                html += `
-                    <div class="${dayClasses.join(' ')}" data-date="${dateStr}">
-                        <div class="week-day-name">${dayName}</div>
-                        <div class="week-day-date">${dayDate}</div>
-                    </div>
-                `;
-            }
-            weekDaysGrid.innerHTML = html;
-            document.querySelectorAll('.week-day-cell').forEach(dayElement => {
-                dayElement.addEventListener('click', (e) => {
-                    const dateStr = e.currentTarget.dataset.date;
-                    selectedDateForBooking = new Date(dateStr);
-                    openBookingModal();
-                });
-            });
-        }
-        function renderMonthCalendarView() {
-            const year = currentMonth.getFullYear();
-            const month = currentMonth.getMonth();
-            monthCalendarTitle.textContent = formatMonthYear(currentMonth);
-            const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
-            const startDate = new Date(firstDay);
-            startDate.setDate(startDate.getDate() - firstDay.getDay());
-            const daysHeader = [
-                { day: 'Пн', class: '' },
-                { day: 'Вт', class: '' },
-                { day: 'Ср', class: '' },
-                { day: 'Чт', class: '' },
-                { day: 'Пт', class: '' },
-                { day: 'Сб', class: 'saturday' },
-                { day: 'Вс', class: 'sunday' }
-            ];
-            let html = daysHeader.map(item => 
-                `<div class="month-day-header ${item.class}">${item.day}</div>`
-            ).join('');
-            const current = new Date(startDate);
-            for (let i = 0; i < 42; i++) {
-                const isCurrentMonth = current.getMonth() === month;
-                const dateStr = formatDate(current);
-                const dayBookings = bookings.filter(booking => booking.date === dateStr);
-                const isToday = current.toDateString() === new Date().toDateString();
-                const isWeekendDay = isWeekend(current);
-                const dayClasses = ['month-day'];
-                if (!isCurrentMonth) dayClasses.push('other-month');
-                if (isToday) dayClasses.push('today');
-                if (isWeekendDay) dayClasses.push('saturday', 'sunday');
-                html += `<div class="${dayClasses.join(' ')}" data-date="${dateStr}">
-                    <div class="month-day-number">${current.getDate()}</div>
-                    <div class="month-day-appointments">`;
-                const visibleBookings = dayBookings.slice(0, 3);
-                visibleBookings.forEach(booking => {
-                    const client = getClientById(booking.clientId);
-                    const isPast = isPastAppointment(booking.date, booking.time);
-                    const pastClass = isPast ? 'past' : '';
-                    html += `<div class="month-appointment ${pastClass}" title="${booking.time} - ${booking.service} (${client ? client.name : 'Клиент'})">
-                        ${booking.time}
-                    </div>`;
-                });
-                if (dayBookings.length > 3) {
-                    html += `<div class="month-appointment" title="Еще ${dayBookings.length - 3} записей">
-                        +${dayBookings.length - 3}
-                    </div>`;
-                }
-                html += `</div></div>`;
-                current.setDate(current.getDate() + 1);
-            }
-            monthGrid.innerHTML = html;
-            document.querySelectorAll('.month-day').forEach(dayElement => {
-                if (!dayElement.classList.contains('other-month')) {
-                    dayElement.addEventListener('click', (e) => {
-                        const dateStr = e.currentTarget.dataset.date;
-                        selectedDateForBooking = new Date(dateStr);
-                        openBookingModal();
-                    });
-                }
-            });
-        }
-        function renderClientsList() {
-            const searchTerm = searchInput.value.toLowerCase();
-            const filteredClients = clients.filter(client => 
-                client.name.toLowerCase().includes(searchTerm) || 
-                client.phone.toLowerCase().includes(searchTerm)
-            );
-            if (filteredClients.length === 0) {
-                clientsList.innerHTML = '<div class="no-appointments">Клиенты не найдены</div>';
-                return;
-            }
-            clientsList.innerHTML = filteredClients.map(client => {
-                return `
-                    <div class="client-card" data-client-id="${client.id}">
-                        <div class="client-avatar">
-                            ${client.avatar ? `<img src="${client.avatar}" alt="${client.name}">` : '<i class="fas fa-user"></i>'}
-                        </div>
-                        <div class="client-info">
-                            <div class="client-name">${client.name}</div>
-                            <div class="client-phone">${client.phone}</div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-            document.querySelectorAll('.client-card').forEach(card => {
-                card.addEventListener('click', () => {
-                    const clientId = parseInt(card.dataset.clientId);
-                    const client = clients.find(c => c.id === clientId);
-                    if (client) {
-                        clientName.value = client.name;
-                        clientPhone.value = client.phone;
-                        if (client.avatar) {
-                            avatarPreview.innerHTML = `<img src="${client.avatar}" alt="${client.name}">`;
-                        } else {
-                            avatarPreview.innerHTML = '<i class="fas fa-user"></i>';
-                        }
-                        bookingModal.style.display = 'flex';
-                        clientsView.style.display = 'none';
-                        navItems.forEach(item => item.classList.remove('active'));
-                        document.querySelector(`.nav-item[data-tab="home"]`).classList.add('active');
-                        updateDateInputs();
-                        renderTimeTags(bookingDate.value);
-                        renderServiceTags();
-                    }
-                });
-            });
-        }
-        function renderCurrentView() {
-            if (currentView === 'day') {
-                dayView.style.display = 'block';
-                weekCalendarView.style.display = 'none';
-                monthCalendarView.style.display = 'none';
-                renderDayView();
-            } else if (currentView === 'week') {
-                dayView.style.display = 'none';
-                weekCalendarView.style.display = 'block';
-                monthCalendarView.style.display = 'none';
-                renderWeekCalendarView();
-            } else if (currentView === 'month') {
-                dayView.style.display = 'none';
-                weekCalendarView.style.display = 'none';
-                monthCalendarView.style.display = 'block';
-                renderMonthCalendarView();
-            }
-        }
-        function showTab(tabName) {
-            navItems.forEach(item => item.classList.remove('active'));
-            document.querySelector(`.nav-item[data-tab="${tabName}"]`).classList.add('active');
-            if (tabName === 'home') {
-                clientsView.style.display = 'none';
-                renderCurrentView();
-            } else if (tabName === 'clients') {
-                clientsView.style.display = 'block';
-                dayView.style.display = 'none';
-                weekCalendarView.style.display = 'none';
-                monthCalendarView.style.display = 'none';
-                renderClientsList();
-            }
-        }
-        function showView(viewName) {
-            currentView = viewName;
-            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`.view-btn[data-view="${viewName}"]`).classList.add('active');
-            renderCurrentView();
-        }
-        function setupEventListeners() {
-            document.querySelectorAll('.view-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    showView(btn.dataset.view);
-                });
-            });
-            navItems.forEach(item => {
-                item.addEventListener('click', () => {
-                    const tab = item.dataset.tab;
-                    showTab(tab);
-                });
-            });
-            prevMonthBtn.addEventListener('click', () => {
-                currentMonth.setMonth(currentMonth.getMonth() - 1);
-                renderMonthCalendarView();
-            });
-            nextMonthBtn.addEventListener('click', () => {
-                currentMonth.setMonth(currentMonth.getMonth() + 1);
-                renderMonthCalendarView();
-            });
-            addBookingBtn.addEventListener('click', () => {
-                editingClient = null;
-                selectedDateForBooking = new Date();
-                openBookingModal();
-            });
-            closeModal.addEventListener('click', closeBookingModal);
-            bookingForm.addEventListener('submit', handleBookingSubmit);
-            bookingModal.addEventListener('click', (e) => {
-                if (e.target === bookingModal) closeBookingModal();
-            });
-            let searchTimeout;
-            searchInput.addEventListener('input', () => {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(renderClientsList, 300);
-            });
-            galleryBtn.addEventListener('click', () => {
-                avatarInput.click();
-            });
-            cameraBtn.addEventListener('click', () => {
-                avatarInput.setAttribute('capture', 'environment');
-                avatarInput.click();
-                avatarInput.removeAttribute('capture');
-            });
-            avatarInput.addEventListener('change', (e) => {
-                if (e.target.files && e.target.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        currentAvatar = event.target.result;
-                        avatarPreview.innerHTML = `<img src="${currentAvatar}" alt="Avatar">`;
-                    };
-                    reader.readAsDataURL(e.target.files[0]);
-                }
-            });
-            selectClientBtn.addEventListener('click', () => {
-                bookingModal.style.display = 'none';
-                showTab('clients');
-                setTimeout(() => {
-                    document.querySelectorAll('.client-card').forEach(card => {
-                        card.addEventListener('click', (e) => {
-                            const clientId = parseInt(card.dataset.clientId);
-                            const client = clients.find(c => c.id === clientId);
-                            if (client) {
-                                clientName.value = client.name;
-                                clientPhone.value = client.phone;
-                                if (client.avatar) {
-                                    avatarPreview.innerHTML = `<img src="${client.avatar}" alt="${client.name}">`;
-                                } else {
-                                    avatarPreview.innerHTML = '<i class="fas fa-user"></i>';
-                                }
-                                bookingModal.style.display = 'flex';
-                                clientsView.style.display = 'none';
-                                navItems.forEach(item => item.classList.remove('active'));
-                                document.querySelector(`.nav-item[data-tab="home"]`).classList.add('active');
-                                updateDateInputs();
-                                renderTimeTags(bookingDate.value);
-                                renderServiceTags();
-                            }
-                        });
-                    });
-                }, 100);
-            });
-            bookingDate.addEventListener('change', () => {
-                renderTimeTags(bookingDate.value);
-            });
-        }
-        function updateDateInputs() {
-            const today = new Date();
-            bookingDate.min = today.toISOString().split('T')[0];
-            if (selectedDateForBooking) {
-                bookingDate.value = formatDate(selectedDateForBooking);
-            } else {
-                bookingDate.value = formatDate(today);
-            }
-        }
-        function openBookingModal() {
-            bookingModal.style.display = 'flex';
-            selectedTime = null;
-            selectedService = null;
-            currentAvatar = null;
-            updateDateInputs();
-            renderTimeTags(bookingDate.value);
-            renderServiceTags();
-            avatarPreview.innerHTML = '<i class="fas fa-user"></i>';
-            if (editingClient) {
-                clientName.value = editingClient.name;
-                clientPhone.value = editingClient.phone;
-                if (editingClient.avatar) {
-                    currentAvatar = editingClient.avatar;
-                    avatarPreview.innerHTML = `<img src="${editingClient.avatar}" alt="${editingClient.name}">`;
-                }
-            } else {
-                clientName.value = '';
-                clientPhone.value = '';
-            }
-        }
-        function closeBookingModal() {
-            bookingModal.style.display = 'none';
-            bookingForm.reset();
-            selectedTime = null;
-            selectedService = null;
-            selectedDateForBooking = null;
-            editingClient = null;
-            currentAvatar = null;
-        }
-        function showNotification(message) {
-            document.querySelector('.notification span').textContent = message;
-            notification.classList.add('show');
-            setTimeout(() => notification.classList.remove('show'), 3000);
-        }
-        clientPhone.addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value.length > 11) value = value.substring(0, 11);
-            if (value.length > 0) {
-                value = '+7 (' + value.substring(1, 4) + ') ' + value.substring(4, 7) + '-' + value.substring(7, 9) + '-' + value.substring(9, 11);
-            }
-            e.target.value = value;
+  function isWeekend(date) {
+    const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
+    const localTime = new Date(utc + (3600000 * 5));
+    const day = localTime.getDay();
+    return day === 0 || day === 6;
+  }
+
+  function isPastAppointment(dateStr, timeStr) {
+    const now = new Date();
+    const appointmentDate = new Date(dateStr + 'T' + timeStr + ':00');
+    const utc = appointmentDate.getTime() + (appointmentDate.getTimezoneOffset() * 60000);
+    const localTime = new Date(utc + (3600000 * 5));
+    return localTime < now;
+  }
+
+  function getWeekStart(date) {
+    const start = new Date(date);
+    const utc = start.getTime() + (start.getTimezoneOffset() * 60000);
+    const localTime = new Date(utc + (3600000 * 5));
+    const day = localTime.getDay();
+    const diff = localTime.getDate() - day + (day === 0 ? -6 : 1);
+    start.setDate(diff);
+    return start;
+  }
+
+  // === RENDER FUNCTIONS (БЕЗ ИЗМЕНЕНИЙ) ===
+  function renderTimeTags(dateStr) {
+    timeTags.innerHTML = '';
+    const timeSlots = getTimeSlots(dateStr);
+    timeSlots.forEach(time => {
+      const isBooked = isTimeBooked(dateStr, time);
+      const tag = document.createElement('div');
+      tag.className = `time-tag ${isBooked ? 'booked' : ''}`;
+      tag.textContent = time;
+      if (!isBooked) {
+        tag.addEventListener('click', () => {
+          document.querySelectorAll('.time-tag').forEach(t => t.classList.remove('selected'));
+          tag.classList.add('selected');
+          selectedTime = time;
         });
-        // Initialize the app
-        init();
-    </script>
-</body>
-</html>
+      }
+      timeTags.appendChild(tag);
+    });
+  }
+
+  function renderDayView() {
+    dayHeader.textContent = formatDisplayDate(currentDate);
+    const dateStr = formatDate(currentDate);
+    const dayBookings = bookings.filter(b => b.date === dateStr);
+    if (dayBookings.length === 0) {
+      dayAppointments.innerHTML = '<div class="no-appointments">Нет записей на сегодня</div>';
+      return;
+    }
+    dayBookings.sort((a, b) => a.time.localeCompare(b.time));
+    dayAppointments.innerHTML = dayBookings.map(booking => {
+      const client = getClientById(booking.clientId);
+      const isPast = isPastAppointment(booking.date, booking.time);
+      const pastClass = isPast ? 'past' : '';
+      const showCancel = !isPast;
+      return `
+        <div class="appointment ${pastClass}">
+          <div class="appointment-avatar">
+            ${client && client.avatar ? `<img src="${client.avatar}" alt="${client.name}">` : '<i class="fas fa-user"></i>'}
+          </div>
+          <div class="appointment-info">
+            <div class="appointment-time">${booking.time}</div>
+            <div class="appointment-service">${booking.service} (${client ? client.name : 'Неизвестный'})</div>
+          </div>
+          ${showCancel ? `<button class="appointment-cancel" onclick="cancelBooking(${booking.id})">Отменить</button>` : ''}
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderWeekCalendarView() {
+    const weekStart = getWeekStart(currentDate);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+    weekCalendarHeader.textContent = formatWeekRange(weekStart, weekEnd);
+    let html = '';
+    for (let i = 0; i < 7; i++) {
+      const day = new Date(weekStart);
+      day.setDate(weekStart.getDate() + i);
+      const dateStr = formatDate(day);
+      const dayBookings = bookings.filter(b => b.date === dateStr);
+      const isToday = day.toDateString() === new Date().toDateString();
+      const dayName = day.toLocaleDateString('ru-RU', { weekday: 'short' });
+      const dayDate = day.getDate();
+      const dayClasses = ['week-day-cell'];
+      if (isToday) dayClasses.push('today');
+      if (dayBookings.length > 0) dayClasses.push('has-appointments');
+      if (isWeekend(day)) dayClasses.push('saturday', 'sunday');
+      html += `
+        <div class="${dayClasses.join(' ')}" data-date="${dateStr}">
+          <div class="week-day-name">${dayName}</div>
+          <div class="week-day-date">${dayDate}</div>
+        </div>
+      `;
+    }
+    weekDaysGrid.innerHTML = html;
+    document.querySelectorAll('.week-day-cell').forEach(el => {
+      el.addEventListener('click', (e) => {
+        const dateStr = e.currentTarget.dataset.date;
+        selectedDateForBooking = new Date(dateStr);
+        openBookingModal();
+      });
+    });
+  }
+
+  function renderMonthCalendarView() {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    monthCalendarTitle.textContent = formatMonthYear(currentMonth);
+    const firstDay = new Date(year, month, 1);
+    const startDate = new Date(firstDay);
+    startDate.setDate(startDate.getDate() - firstDay.getDay());
+    
+    const daysHeader = [
+      { day: 'Пн', class: '' },
+      { day: 'Вт', class: '' },
+      { day: 'Ср', class: '' },
+      { day: 'Чт', class: '' },
+      { day: 'Пт', class: '' },
+      { day: 'Сб', class: 'saturday' },
+      { day: 'Вс', class: 'sunday' }
+    ];
+    let html = daysHeader.map(item => 
+      `<div class="month-day-header ${item.class}">${item.day}</div>`
+    ).join('');
+    
+    const current = new Date(startDate);
+    for (let i = 0; i < 42; i++) {
+      const isCurrentMonth = current.getMonth() === month;
+      const dateStr = formatDate(current);
+      const dayBookings = bookings.filter(b => b.date === dateStr);
+      const isToday = current.toDateString() === new Date().toDateString();
+      const isWeekendDay = isWeekend(current);
+      const dayClasses = ['month-day'];
+      if (!isCurrentMonth) dayClasses.push('other-month');
+      if (isToday) dayClasses.push('today');
+      if (isWeekendDay) dayClasses.push('saturday', 'sunday');
+      html += `<div class="${dayClasses.join(' ')}" data-date="${dateStr}">
+        <div class="month-day-number">${current.getDate()}</div>
+        <div class="month-day-appointments">`;
+      const visible = dayBookings.slice(0, 3);
+      visible.forEach(b => {
+        const client = getClientById(b.clientId);
+        const isPast = isPastAppointment(b.date, b.time);
+        const pastClass = isPast ? 'past' : '';
+        html += `<div class="month-appointment ${pastClass}" title="${b.time} - ${b.service} (${client ? client.name : 'Клиент'})">${b.time}</div>`;
+      });
+      if (dayBookings.length > 3) {
+        html += `<div class="month-appointment" title="Еще ${dayBookings.length - 3} записей">+${dayBookings.length - 3}</div>`;
+      }
+      html += `</div></div>`;
+      current.setDate(current.getDate() + 1);
+    }
+    monthGrid.innerHTML = html;
+    document.querySelectorAll('.month-day').forEach(el => {
+      if (!el.classList.contains('other-month')) {
+        el.addEventListener('click', (e) => {
+          const dateStr = e.currentTarget.dataset.date;
+          selectedDateForBooking = new Date(dateStr);
+          openBookingModal();
+        });
+      }
+    });
+  }
+
+  function renderClientsList() {
+    const term = searchInput.value.toLowerCase();
+    const filtered = clients.filter(c => 
+      c.name.toLowerCase().includes(term) || c.phone.toLowerCase().includes(term)
+    );
+    if (filtered.length === 0) {
+      clientsList.innerHTML = '<div class="no-appointments">Клиенты не найдены</div>';
+      return;
+    }
+    clientsList.innerHTML = filtered.map(client => `
+      <div class="client-card" data-client-id="${client.id}">
+        <div class="client-avatar">
+          ${client.avatar ? `<img src="${client.avatar}" alt="${client.name}">` : '<i class="fas fa-user"></i>'}
+        </div>
+        <div class="client-info">
+          <div class="client-name">${client.name}</div>
+          <div class="client-phone">${client.phone}</div>
+        </div>
+      </div>
+    `).join('');
+    
+    document.querySelectorAll('.client-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const id = parseInt(card.dataset.clientId);
+        const client = clients.find(c => c.id == id);
+        if (client) {
+          clientName.value = client.name;
+          clientPhone.value = client.phone;
+          avatarPreview.innerHTML = client.avatar ? `<img src="${client.avatar}">` : '<i class="fas fa-user"></i>';
+          bookingModal.style.display = 'flex';
+          clientsView.style.display = 'none';
+          navItems.forEach(i => i.classList.remove('active'));
+          document.querySelector('.nav-item[data-tab="home"]').classList.add('active');
+          updateDateInputs();
+          renderTimeTags(bookingDate.value);
+        }
+      });
+    });
+  }
+
+  async function cancelBooking(id) {
+    if (confirm('Отменить запись?')) {
+      try {
+        await deleteFromGoogle('bookings', id);
+        bookings = bookings.filter(b => b.id != id);
+        showNotification('Запись отменена!');
+        renderCurrentView();
+      } catch (e) {
+        alert("Ошибка: " + e.message);
+      }
+    }
+  }
+
+  function renderCurrentView() {
+    if (currentView === 'day') {
+      dayView.style.display = 'block';
+      weekCalendarView.style.display = 'none';
+      monthCalendarView.style.display = 'none';
+      renderDayView();
+    } else if (currentView === 'week') {
+      dayView.style.display = 'none';
+      weekCalendarView.style.display = 'block';
+      monthCalendarView.style.display = 'none';
+      renderWeekCalendarView();
+    } else if (currentView === 'month') {
+      dayView.style.display = 'none';
+      weekCalendarView.style.display = 'none';
+      monthCalendarView.style.display = 'block';
+      renderMonthCalendarView();
+    }
+  }
+
+  function showTab(tab) {
+    navItems.forEach(i => i.classList.remove('active'));
+    document.querySelector(`.nav-item[data-tab="${tab}"]`).classList.add('active');
+    if (tab === 'home') {
+      clientsView.style.display = 'none';
+      renderCurrentView();
+    } else if (tab === 'clients') {
+      clientsView.style.display = 'block';
+      dayView.style.display = 'none';
+      weekCalendarView.style.display = 'none';
+      monthCalendarView.style.display = 'none';
+      renderClientsList();
+    }
+  }
+
+  function showView(view) {
+    currentView = view;
+    document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelector(`.view-btn[data-view="${view}"]`).classList.add('active');
+    renderCurrentView();
+  }
+
+  function setupEventListeners() {
+    document.querySelectorAll('.view-btn').forEach(btn => {
+      btn.addEventListener('click', () => showView(btn.dataset.view));
+    });
+    navItems.forEach(item => {
+      item.addEventListener('click', () => showTab(item.dataset.tab));
+    });
+    prevMonthBtn.addEventListener('click', () => {
+      currentMonth.setMonth(currentMonth.getMonth() - 1);
+      renderMonthCalendarView();
+    });
+    nextMonthBtn.addEventListener('click', () => {
+      currentMonth.setMonth(currentMonth.getMonth() + 1);
+      renderMonthCalendarView();
+    });
+    addBookingBtn.addEventListener('click', () => {
+      selectedDateForBooking = new Date();
+      openBookingModal();
+    });
+    closeModal.addEventListener('click', closeBookingModal);
+    bookingForm.addEventListener('submit', handleBookingSubmit);
+    bookingModal.addEventListener('click', (e) => {
+      if (e.target === bookingModal) closeBookingModal();
+    });
+    let searchTimeout;
+    searchInput.addEventListener('input', () => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(renderClientsList, 300);
+    });
+    galleryBtn.addEventListener('click', () => avatarInput.click());
+    cameraBtn.addEventListener('click', () => {
+      avatarInput.setAttribute('capture', 'environment');
+      avatarInput.click();
+      avatarInput.removeAttribute('capture');
+    });
+    avatarInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          currentAvatar = event.target.result;
+          avatarPreview.innerHTML = `<img src="${currentAvatar}">`;
+        };
+        reader.readAsDataURL(e.target.files[0]);
+      }
+    });
+    selectClientBtn.addEventListener('click', () => {
+      bookingModal.style.display = 'none';
+      showTab('clients');
+      setTimeout(() => {
+        document.querySelectorAll('.client-card').forEach(card => {
+          card.addEventListener('click', () => {
+            const id = parseInt(card.dataset.clientId);
+            const client = clients.find(c => c.id == id);
+            if (client) {
+              clientName.value = client.name;
+              clientPhone.value = client.phone;
+              avatarPreview.innerHTML = client.avatar ? `<img src="${client.avatar}">` : '<i class="fas fa-user"></i>';
+              bookingModal.style.display = 'flex';
+              clientsView.style.display = 'none';
+              navItems.forEach(i => i.classList.remove('active'));
+              document.querySelector('.nav-item[data-tab="home"]').classList.add('active');
+              updateDateInputs();
+              renderTimeTags(bookingDate.value);
+            }
+          });
+        });
+      }, 100);
+    });
+    bookingDate.addEventListener('change', () => renderTimeTags(bookingDate.value));
+  }
+
+  function updateDateInputs() {
+    const today = new Date();
+    bookingDate.min = today.toISOString().split('T')[0];
+    if (selectedDateForBooking) {
+      bookingDate.value = formatDate(selectedDateForBooking);
+    } else {
+      bookingDate.value = formatDate(today);
+    }
+  }
+
+  function openBookingModal() {
+    bookingModal.style.display = 'flex';
+    selectedTime = null;
+    selectedService = null;
+    currentAvatar = null;
+    updateDateInputs();
+    renderTimeTags(bookingDate.value);
+    avatarPreview.innerHTML = '<i class="fas fa-user"></i>';
+    clientName.value = '';
+    clientPhone.value = '';
+    document.querySelectorAll('.service-tag').forEach(t => t.classList.remove('selected'));
+  }
+
+  function closeBookingModal() {
+    bookingModal.style.display = 'none';
+    bookingForm.reset();
+    selectedTime = null;
+    selectedService = null;
+    selectedDateForBooking = null;
+    currentAvatar = null;
+  }
+
+  async function handleBookingSubmit(e) {
+    e.preventDefault();
+    const serviceTags = document.querySelectorAll('.service-tag');
+    let service = null;
+    serviceTags.forEach(tag => {
+      if (tag.classList.contains('selected')) {
+        service = tag.dataset.service;
+      }
+    });
+    if (!selectedTime || !service) {
+      alert('Выберите время и услугу');
+      return;
+    }
+
+    let client = clients.find(c => c.phone === clientPhone.value);
+    if (!client) {
+      const newClient = {
+        id: Date.now(),
+        name: clientName.value,
+        phone: clientPhone.value,
+        avatar: currentAvatar || ''
+      };
+      await saveToGoogle('clients', newClient);
+      clients.push(newClient);
+      client = newClient;
+    }
+
+    const newBooking = {
+      id: Date.now(),
+      clientId: client.id,
+      date: bookingDate.value,
+      time: selectedTime,
+      service: service
+    };
+    await saveToGoogle('bookings', newBooking);
+    bookings.push(newBooking);
+
+    showNotification('Клиент записан!');
+    closeBookingModal();
+    renderCurrentView();
+  }
+
+  function showNotification(message) {
+    document.querySelector('.notification span').textContent = message;
+    notification.classList.add('show');
+    setTimeout(() => notification.classList.remove('show'), 3000);
+  }
+
+  clientPhone.addEventListener('input', function(e) {
+    let v = e.target.value.replace(/\D/g, '');
+    if (v.length > 11) v = v.substring(0, 11);
+    if (v.length > 0) {
+      v = '+7 (' + v.substring(1, 4) + ') ' + v.substring(4, 7) + '-' + v.substring(7, 9) + '-' + v.substring(9, 11);
+    }
+    e.target.value = v;
+  });
+
+  // Fallback data (for offline or error cases)
+  function initSampleData() {
+    clients = [
+      { id: 1, name: 'Анна Петрова', phone: '+7 (999) 123-45-67', avatar: null },
+      { id: 2, name: 'Михаил Соколов', phone: '+7 (999) 234-56-78', avatar: null },
+      { id: 3, name: 'Елена Кузнецова', phone: '+7 (999) 345-67-89', avatar: null }
+    ];
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    bookings = [
+      { id: 1, clientId: 1, date: formatDate(today), time: '09:00', service: 'Стрижка' },
+      { id: 2, clientId: 2, date: formatDate(today), time: '10:30', service: 'Покраска' },
+      { id: 3, clientId: 3, date: formatDate(tomorrow), time: '14:00', service: 'Прическа' }
+    ];
+  }
+
+  // Start app
+  init();
+</script>
